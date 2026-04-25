@@ -288,3 +288,21 @@ npx codemod publish .
 - Ape testing guide: https://docs.apeworx.io/ape/latest/userguides/testing.html
 - Brownie deprecation notice: https://github.com/eth-brownie/brownie#readme
 - Codemod workflow reference: https://docs.codemod.com/cli/packages/building-workflows
+
+## Screenshots
+
+### Dry-run diff stat
+
+![Diff stat](docs/screenshots/simple-storage-diff-stat.png)
+
+### Deploy script migration
+
+![Deploy diff](docs/screenshots/simple-storage-deploy-diff.png)
+
+### Test file migration
+
+![Test diff](docs/screenshots/simple-storage-test-diff.png)
+
+### Config migration
+
+![Config diff](docs/screenshots/simple-storage-config-diff.png)
