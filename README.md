@@ -1,3 +1,5 @@
+![Tests](https://github.com/dmetagame/brownie-to-ape/actions/workflows/test.yml/badge.svg)
+
 # brownie-to-ape
 
 Hybrid AST + AI Codemod for migrating Python Ethereum projects from
