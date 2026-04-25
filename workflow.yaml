@@ -1,0 +1,150 @@
+version: "1"
+nodes:
+  - id: brownie-to-ape
+    name: Brownie to Ape Framework
+    type: automatic
+    steps:
+      - name: Python imports and Brownie root objects
+        js-ast-grep:
+          js_file: src/transforms/imports.ts
+          language: python
+          include:
+            - "**/*.py"
+          exclude:
+            - "**/.venv/**"
+            - "**/venv/**"
+            - "**/build/**"
+            - "**/.tox/**"
+
+      - name: Python accounts, contracts, and transactions
+        js-ast-grep:
+          js_file: src/transforms/accounts.ts
+          language: python
+          include:
+            - "**/*.py"
+          exclude:
+            - "**/.venv/**"
+            - "**/venv/**"
+            - "**/build/**"
+            - "**/.tox/**"
+
+      - name: Python contracts, deployments, and transactions
+        js-ast-grep:
+          js_file: src/transforms/contracts.ts
+          language: python
+          include:
+            - "**/*.py"
+          exclude:
+            - "**/.venv/**"
+            - "**/venv/**"
+            - "**/build/**"
+            - "**/.tox/**"
+
+      - name: Python networks, web3, and chain-id patterns
+        js-ast-grep:
+          js_file: src/transforms/networks.ts
+          language: python
+          include:
+            - "**/*.py"
+          exclude:
+            - "**/.venv/**"
+            - "**/venv/**"
+            - "**/build/**"
+            - "**/.tox/**"
+
+      - name: Python pytest, Brownie test helpers, and events
+        js-ast-grep:
+          js_file: src/transforms/testing.ts
+          language: python
+          include:
+            - "**/*.py"
+          exclude:
+            - "**/.venv/**"
+            - "**/venv/**"
+            - "**/build/**"
+            - "**/.tox/**"
+
+      - name: Python project loading and script CLI entrypoints
+        js-ast-grep:
+          js_file: src/transforms/project-cli.ts
+          language: python
+          include:
+            - "**/*.py"
+          exclude:
+            - "**/.venv/**"
+            - "**/venv/**"
+            - "**/build/**"
+            - "**/.tox/**"
+
+      - name: YAML Brownie config to Ape config
+        js-ast-grep:
+          js_file: src/transforms/config-yaml.ts
+          language: yaml
+          include:
+            - "brownie-config.yaml"
+            - "brownie-config.yml"
+            - "**/brownie-config.yaml"
+            - "**/brownie-config.yml"
+          exclude:
+            - "**/node_modules/**"
+            - "**/build/**"
+
+      - name: AI edge-case cleanup for dynamic Brownie usage
+        ai:
+          max_steps: 20
+          system_prompt: |
+            You are rouma, a precise Brownie-to-Ape migration assistant running after deterministic AST codemods.
+
+            Your job is to handle only the remaining edge cases that the AST transforms could not safely rewrite. You must preserve existing project behavior and keep edits as small as possible.
+
+            Authoritative sources:
+            - Ape Framework docs: https://docs.apeworx.io/ape
+            - Ape accounts guide: https://docs.apeworx.io/ape/stable/userguides/accounts.html
+            - Ape contracts guide: https://docs.apeworx.io/ape/stable/userguides/contracts.html
+            - Ape networks guide: https://docs.apeworx.io/ape/stable/userguides/networks.html
+            - Ape scripts guide: https://docs.apeworx.io/ape/stable/userguides/scripts.html
+            - Ape testing guide: https://docs.apeworx.io/ape/latest/userguides/testing.html
+            - Brownie deprecation notice: https://github.com/eth-brownie/brownie#readme
+
+            Hard rules:
+            - Do not invent Ape APIs. If a replacement is not clearly documented in the Ape docs above, leave the code unchanged and add a concise TODO comment.
+            - Do not rewrite unrelated Python, Solidity, JavaScript, TypeScript, Markdown, lockfiles, or generated files.
+            - Do not change business logic, deployment parameters, addresses, environment variable names, account aliases, gas settings, constructor args, test assertions, or fixture semantics unless the Brownie-to-Ape mapping is direct and documented.
+            - Do not remove safety checks, access control checks, mocks, monkeypatches, revert assertions, event assertions, or fork/network guards.
+            - Prefer explicit imports from ape over wildcard imports when touching a file, but do not churn imports in files that have no remaining Brownie usage.
+            - Prefer deterministic, reviewable changes over clever rewrites. If unsure, leave a TODO that names the Brownie API and the Ape docs section to review.
+            - Keep TODO comments short and actionable. Prefix them with "TODO(brownie-to-ape):".
+            - Never claim a migration is complete in code comments.
+
+            You may edit only these remaining edge cases:
+            - Complex custom deployment scripts that still call Brownie project loaders, script runners, network selection, or contract containers.
+            - Legacy web3.py or Brownie wrapper code that still uses web3.eth.*, network.*, chain.*, history, or rpc helpers and has a clear Ape equivalent.
+            - Non-standard account or contract patterns such as dynamic account selection, custom account wrapper classes, Contract.from_abi, interface wrappers, or dynamic Contract.at usage.
+            - Heavy pytest mocking that references Brownie-specific fixtures, brownie.reverts, isolation fixtures, history, event dictionaries, or transaction receipts.
+            - Any remaining deprecated Brownie imports or APIs after the deterministic transforms.
+
+            Use these documented migration preferences:
+            - accounts.load("<alias>") for stored accounts; accounts.test_accounts[index] only for local/test accounts when that intent is obvious.
+            - project.ContractName.deploy(..., sender=account) for local project deployments.
+            - Contract(address) only for address-backed contract instances where ABI discovery or ecosystem lookup is appropriate.
+            - networks and provider context managers for network selection.
+            - chain for chain id, blocks, balances, receipts, timestamps, and mining/time helpers when documented.
+            - ape.reverts(...) for revert assertions.
+            - ReceiptAPI.events / log.event_name / log.event_arguments for event assertions only when the existing Brownie event assertion shape is clear.
+
+            Final behavior:
+            - Return only code changes needed for Brownie-to-Ape migration.
+            - If a file has no safe remaining Brownie-to-Ape changes, do not edit it.
+          prompt: |
+            Review the repository after the seven deterministic Brownie-to-Ape JSSG transforms have run.
+
+            Find only remaining Brownie-specific Python or YAML migration edge cases. Apply a minimal patch when the Ape replacement is directly supported by the official Ape docs referenced in the system prompt.
+
+            Focus on:
+            - custom deployment scripts with dynamic Brownie project/script/account/network logic
+            - legacy web3.py or Brownie-specific wrappers around accounts, contracts, networks, chain, history, rpc, receipts, or events
+            - non-standard account and contract patterns that deterministic transforms intentionally left conservative
+            - pytest files with Brownie isolation fixtures, brownie.test strategy helpers, event dictionaries, transaction receipts, or heavy mocking
+            - remaining imports or API calls from brownie
+
+            Do not perform general cleanup. Do not modernize style. Do not rewrite unrelated code. If there is no safe documented Ape equivalent, leave the code unchanged or add a short TODO(brownie-to-ape) comment explaining the manual decision needed.

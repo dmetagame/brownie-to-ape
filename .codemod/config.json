@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.codemod.com/schemas/codemod.config.schema.json",
+  "name": "brownie-to-ape",
+  "displayName": "Brownie to Ape Framework",
+  "version": "0.1.0",
+  "description": "Hybrid jssg + AI Codemod workflow for migrating Brownie Ethereum Python projects to Ape Framework.",
+  "author": "rouma",
+  "license": "MIT",
+  "repository": "https://github.com/dmetagame/brownie-to-ape",
+  "workflow": "workflow.yaml",
+  "languages": ["python", "yaml"],
+  "categories": ["migration", "ethereum", "web3", "python"],
+  "keywords": [
+    "brownie",
+    "ape",
+    "apeworx",
+    "ethereum",
+    "smart-contracts",
+    "python",
+    "yaml",
+    "migration",
+    "ast-grep",
+    "jssg",
+    "ai"
+  ],
+  "registry": {
+    "access": "public",
+    "visibility": "public",
+    "publishCommand": "npx codemod publish .",
+    "testedWith": ["smartcontractkit/chainlink-mix", "PatrickAlphaC/brownie_simple_storage"]
+  },
+  "targets": {
+    "sourceFramework": "Brownie",
+    "targetFramework": "Ape Framework",
+    "automationGoal": "80%+",
+    "measuredAutomation": "84.9%",
+    "manualReviewBudget": "<20%"
+  },
+  "runtime": {
+    "toolkit": "codemod",
+    "workflowType": "hybrid",
+    "deterministicEngine": "jssg",
+    "astGrepModule": "codemod:ast-grep",
+    "aiSteps": 1,
+    "parsers": {
+      "python": "@ast-grep/lang-python",
+      "yaml": "@ast-grep/lang-yaml"
+    }
+  },
+  "validation": {
+    "testCommand": "npm test",
+    "fixturePairs": 16,
+    "realRepoFilesChanged": 23,
+    "browniePatternsBefore": 86,
+    "browniePatternsAfter": 13
+  },
+  "sourceReferences": [
+    "https://docs.apeworx.io/ape",
+    "https://docs.apeworx.io/ape/stable/userguides/accounts.html",
+    "https://docs.apeworx.io/ape/stable/userguides/contracts.html",
+    "https://docs.apeworx.io/ape/stable/userguides/networks.html",
+    "https://docs.apeworx.io/ape/stable/userguides/scripts.html",
+    "https://docs.apeworx.io/ape/latest/userguides/testing.html",
+    "https://github.com/eth-brownie/brownie#readme"
+  ],
+  "fixtures": {
+    "directory": "fixtures",
+    "pairCount": 16
+  }
+}

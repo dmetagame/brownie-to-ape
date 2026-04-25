@@ -1,0 +1,11 @@
+hypothesis:
+  deadline: null
+  max_examples: 50
+reports:
+  exclude_contracts:
+    - SafeMath
+networks:
+  development:
+    cmd: ganache-cli
+    gas_limit: max
+    default_balance: 100 ether

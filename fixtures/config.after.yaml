@@ -1,0 +1,21 @@
+name: brownie-to-ape-example
+plugins:
+  - name: solidity
+  - name: etherscan
+  - name: infura
+dependencies:
+  - name: OpenZeppelin
+    github: OpenZeppelin/openzeppelin-contracts
+    version: 4.9.6
+solidity:
+  version: 0.8.20
+  import_remapping:
+    - "@openzeppelin=OpenZeppelin/4.9.6"
+ethereum:
+  default_network: local
+  sepolia:
+    default_provider: infura
+node:
+  ethereum:
+    local:
+      uri: http://127.0.0.1:8545

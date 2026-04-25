@@ -1,0 +1,7 @@
+test:
+  number_of_accounts: 10
+  balance: 100_000 ETH
+  mnemonic: test test test test test test test test test test test junk
+compile:
+  exclude:
+    - contracts/mocks/**
