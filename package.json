@@ -26,7 +26,6 @@
   ],
   "files": [
     ".codemod",
-    "docs",
     "fixtures",
     "src",
     "workflow.yaml",

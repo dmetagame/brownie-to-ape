@@ -78,11 +78,9 @@ cd /home/rouma/brownie-to-ape
 npm run publish:codemod
 ```
 
-## Optional GitHub Action
+## GitHub Action
 
-The publish-action template is stored at `docs/github-workflows/publish.yml`.
-Move it to `.github/workflows/publish.yml` only when your GitHub token has the
-`workflow` scope, then tag the release:
+The publish action is enabled at `.github/workflows/publish.yml`. Tag the release:
 
 ```bash
 cd /home/rouma/brownie-to-ape
@@ -99,7 +97,7 @@ The workflow publishes the root codemod package after `npm ci` and `npm test`.
 - Real-repo metrics: `real-repo-test-results.md`
 - Chainlink smoke test detail: `test-results-chainlink-mix.md`
 - AI safety prompt and examples: `src/ai-edge-cases.md`
-- Optional GitHub Actions publish template: `docs/github-workflows/publish.yml`
+- GitHub Actions publish workflow: `.github/workflows/publish.yml`
 - Workflow: `workflow.yaml`
 - Registry metadata: `.codemod/config.json`, `codemod.yaml`
 
