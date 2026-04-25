@@ -14,13 +14,14 @@ AI step handles only documented edge cases that remain.
 
 ## Real-World Result
 
-`brownie-to-ape` was smoke-tested on two public Brownie repositories:
+`brownie-to-ape` was tested on three public Brownie repositories:
 
-| Repository | Files changed | Brownie patterns before | Brownie patterns after | Deterministic automation | AI-handled changes | Remaining manual work |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| [`smartcontractkit/chainlink-mix`](https://github.com/smartcontractkit/chainlink-mix) | 19 | 77 | 12 | 84.4% | 0.0% observed | 15.6% |
-| [`PatrickAlphaC/brownie_simple_storage`](https://github.com/PatrickAlphaC/brownie_simple_storage) | 4 | 9 | 1 | 88.9% | 0.0% observed | 11.1% |
-| Combined | 23 | 86 | 13 | 84.9% | 0.0% observed | 15.1% |
+| Repository | Files changed | Brownie patterns before | Brownie patterns after | Automated | Remaining |
+| --- | --- | --- | --- | --- | --- |
+| [`smartcontractkit/chainlink-mix`](https://github.com/smartcontractkit/chainlink-mix) | 19 | 77 | 12 | 84.4% | 15.6% |
+| [`PatrickAlphaC/brownie_simple_storage`](https://github.com/PatrickAlphaC/brownie_simple_storage) | 4 | 9 | 1 | 88.9% | 11.1% |
+| [`PatrickAlphaC/brownie_fund_me`](https://github.com/PatrickAlphaC/brownie_fund_me) | 6 | 5 | 1 | 80.0% | 20.0% |
+| **Combined** | **29** | **91** | **14** | **84.6%** | **15.4%** |
 
 Metric basis: Brownie-specific Python/YAML signatures before and after the
 workflow, excluding generated build artifacts. The measured result is **80%+
@@ -37,22 +38,12 @@ Full run notes are in:
 Run against an existing Brownie project clone:
 
 ```bash
-npx codemod workflow run -w /home/rouma/brownie-to-ape/workflow.yaml --target /path/to/brownie-project --dry-run --allow-dirty
+git clone https://github.com/dmetagame/brownie-to-ape.git
+cd brownie-to-ape
+npx codemod workflow run -w workflow.yaml --target /path/to/brownie-project --dry-run --allow-dirty
 ```
 
-One-command real-repo demo from this workspace:
-
-```bash
-cd /tmp && git clone https://github.com/PatrickAlphaC/brownie_simple_storage.git brownie-simple-storage-demo && npx codemod workflow run -w /home/rouma/brownie-to-ape/workflow.yaml --target /tmp/brownie-simple-storage-demo --dry-run --allow-dirty
-```
-
-After reviewing the dry-run diff, apply the migration:
-
-```bash
-npx codemod workflow run -w /home/rouma/brownie-to-ape/workflow.yaml --target /tmp/brownie-simple-storage-demo --allow-dirty
-```
-
-Published registry usage:
+Or run directly from the registry:
 
 ```bash
 npx codemod brownie-to-ape --target /path/to/brownie-project --dry-run
