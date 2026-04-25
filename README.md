@@ -308,3 +308,7 @@ npx codemod publish .
 ### Config migration
 
 ![Config diff](docs/screenshots/simple-storage-config-diff.png)
+
+## Why the AI step made zero edits
+
+In the smoke tests on `chainlink-mix` and `brownie_simple_storage`, the AI step made zero edits. This is the intended behavior — the seven deterministic transforms were comprehensive enough to handle all safely-rewritable Brownie patterns in these repos. The AI step activates only when documented Ape equivalents exist for patterns the deterministic transforms intentionally skip (dynamic wrappers, custom account classes, complex event dictionary usage). Its zero-edit result is a signal of deterministic coverage, not a misconfiguration.
