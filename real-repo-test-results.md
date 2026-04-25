@@ -162,3 +162,20 @@ The codemod successfully ran as a hybrid workflow on both repositories:
 - The guarded AI step executed after deterministic transforms and did not make speculative edits in these smoke tests.
 - Combined measured automation was 84.9%, keeping manual review at 15.1%.
 - The output diffs are reviewable and concentrated in Brownie migration surfaces rather than unrelated style churn.
+
+## Third Repo: PatrickAlphaC/brownie_fund_me
+
+| Repository | Files changed | Brownie signatures before | Brownie signatures after | Automated | Remaining manual work |
+| --- | --- | --- | --- | --- | --- |
+| `PatrickAlphaC/brownie_fund_me` | 6 | 5 | 1 | 80.0% | 20.0% |
+
+Remaining work: one multiline `from brownie import (MockV3Aggregator, network, ...)` in `scripts/deploy_mocks.py` was not fully removed — usages were migrated but the old import block needs manual cleanup. The `brownie-config.yaml` hit is a Chainlink package naming string (`chainlink-brownie-contracts`) and is not a migration failure.
+
+## Updated Combined Metrics (All Three Repos)
+
+| Repository | Files changed | Brownie signatures before | Brownie signatures after | Automated | Remaining |
+| --- | --- | --- | --- | --- | --- |
+| `smartcontractkit/chainlink-mix` | 19 | 77 | 12 | 84.4% | 15.6% |
+| `PatrickAlphaC/brownie_simple_storage` | 4 | 9 | 1 | 88.9% | 11.1% |
+| `PatrickAlphaC/brownie_fund_me` | 6 | 5 | 1 | 80.0% | 20.0% |
+| **Combined** | **29** | **91** | **14** | **84.6%** | **15.4%** |
