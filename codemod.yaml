@@ -2,50 +2,23 @@ schema_version: "1.0"
 
 name: "brownie-to-ape"
 version: "0.1.0"
-description: "Hybrid AST + AI migration from Brownie Ethereum Python projects to Ape Framework."
-author: "rouma"
+description: "Production-grade migration from Brownie to Ape Framework with deterministic jssg transforms + AI for edge cases. Automates 80%+ of the upgrade."
+author: "dmetagame <118340345+dmetagame@users.noreply.github.com>"
 license: "MIT"
 workflow: "workflow.yaml"
-repository: "https://github.com/dmetagame/brownie-to-ape"
-homepage: "https://docs.apeworx.io/ape"
-documentation: "README.md"
+category: "migration"
 
 targets:
   languages: ["python", "yaml"]
-  source_framework: "Brownie"
-  target_framework: "Ape Framework"
 
 keywords:
+  - "cross-migration"
   - "brownie"
   - "ape"
-  - "apeworx"
-  - "ethereum"
-  - "smart-contracts"
   - "python"
-  - "yaml"
-  - "migration"
-  - "ast-grep"
-  - "jssg"
-  - "ai"
 
 registry:
   access: "public"
   visibility: "public"
-  category: "framework-migration"
 
-capabilities:
-  - "python"
-  - "yaml"
-  - "ast-grep"
-  - "workflow"
-  - "ai-edge-cases"
-
-validation:
-  test_command: "npm test"
-  workflow_validate_command: "npx codemod workflow validate -w workflow.yaml"
-  fixture_pairs: 16
-  measured_real_repo_automation: "84.9%"
-
-references:
-  - "https://docs.apeworx.io/ape"
-  - "https://github.com/eth-brownie/brownie#readme"
+capabilities: []

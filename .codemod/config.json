@@ -3,7 +3,7 @@
   "name": "brownie-to-ape",
   "displayName": "Brownie to Ape Framework",
   "version": "0.1.0",
-  "description": "Hybrid jssg + AI Codemod workflow for migrating Brownie Ethereum Python projects to Ape Framework.",
+  "description": "Production-grade migration from Brownie to Ape Framework with deterministic jssg transforms + AI for edge cases. Automates 80%+ of the upgrade.",
   "author": "rouma",
   "license": "MIT",
   "repository": "https://github.com/dmetagame/brownie-to-ape",

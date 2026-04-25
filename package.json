@@ -2,7 +2,7 @@
   "name": "brownie-to-ape",
   "version": "0.1.0",
   "private": false,
-  "description": "Hybrid AST + AI Codemod workflow for migrating Brownie projects to Ape Framework.",
+  "description": "Production-grade migration from Brownie to Ape Framework with deterministic jssg transforms + AI for edge cases. Automates 80%+ of the upgrade.",
   "type": "module",
   "author": "rouma",
   "license": "MIT",
