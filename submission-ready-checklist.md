@@ -8,7 +8,7 @@ Use this checklist immediately before hackathon submission and Codemod Registry 
 - [x] Hackathon one-page summary is present in `HACKATHON-SUBMISSION.md`.
 - [x] Registry metadata is present in `.codemod/config.json` and `codemod.yaml`.
 - [x] Workflow uses seven deterministic `jssg` / ast-grep transforms before one AI step.
-- [x] Fixture suite includes 16 before/after pairs across Python and YAML.
+- [x] Fixture suite includes 17 before/after pairs across Python and YAML plus 13 executable jssg snapshot cases.
 - [x] Real-repo smoke results are recorded in `real-repo-test-results.md` and `test-results-chainlink-mix.md`.
 
 ## Final Local Validation
@@ -16,7 +16,7 @@ Use this checklist immediately before hackathon submission and Codemod Registry 
 Run from the project root:
 
 ```bash
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npm install
 npm test
 npx codemod workflow validate -w workflow.yaml
@@ -26,7 +26,8 @@ Expected result:
 
 ```text
 ✅ Workflow definition is valid
-ok: 16 fixture pairs
+ok: 17 fixture pairs
+13 jssg transform snapshot cases
 ```
 
 ## Optional Real-Repo Demo Check
@@ -36,7 +37,7 @@ Use a disposable clone:
 ```bash
 cd /tmp
 git clone https://github.com/PatrickAlphaC/brownie_simple_storage.git brownie-simple-storage-demo
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npx codemod workflow run -w workflow.yaml --target /tmp/brownie-simple-storage-demo --dry-run --allow-dirty
 ```
 
@@ -53,28 +54,28 @@ git diff --stat
 Authenticate with Codemod:
 
 ```bash
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npx codemod login
 ```
 
 Or authenticate non-interactively with an API key:
 
 ```bash
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npx codemod login --api-key "$CODEMOD_API_KEY"
 ```
 
 Publish to the Codemod Registry:
 
 ```bash
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npx codemod publish . --verbose
 ```
 
 Equivalent npm script:
 
 ```bash
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npm run publish:codemod
 ```
 
@@ -83,9 +84,9 @@ npm run publish:codemod
 The publish action is enabled at `.github/workflows/publish.yml`. Tag the release:
 
 ```bash
-cd /home/rouma/brownie-to-ape
-git tag brownie-to-ape@v0.1.0
-git push origin brownie-to-ape@v0.1.0
+cd /path/to/brownie-to-ape
+git tag brownie-to-ape@v0.1.2
+git push origin brownie-to-ape@v0.1.2
 ```
 
 The workflow publishes the root codemod package after `npm ci` and `npm test`.

@@ -5,6 +5,7 @@ const CONTRACT_PATTERNS = [
   { pattern: 'Contract.at($ADDRESS)' },
   { pattern: 'Contract.from_abi($NAME, $ADDRESS, $ABI)' },
   { pattern: '$CONTRACT.deploy($$$ARGS)' },
+  { pattern: '$CONTRACT.at($ADDRESS)' },
 ];
 
 const TX_KEY_MAP = new Map<string, string>([
@@ -17,6 +18,28 @@ const TX_KEY_MAP = new Map<string, string>([
   ['nonce', 'nonce'],
   ['required_confs', 'required_confirmations'],
   ['value', 'value'],
+]);
+
+const PYTHON_TYPING_NAMES = new Set([
+  'Annotated',
+  'Any',
+  'Callable',
+  'ClassVar',
+  'Dict',
+  'Final',
+  'Generic',
+  'Iterable',
+  'Iterator',
+  'List',
+  'Literal',
+  'Mapping',
+  'Optional',
+  'Sequence',
+  'Set',
+  'Tuple',
+  'Type',
+  'TypeVar',
+  'Union',
 ]);
 
 const splitImportNames = (importList: string) => {
@@ -112,6 +135,10 @@ const convertBrownieTxDict = (body: string) => {
 
 const replaceTransactionDictionaries = (source: string) => {
   return source
+    .replace(/^([ \t]*)\{([^{}\n]*["']from["'][^{}\n]*)\}\s*,\s*$/gm, (_match, indent: string, body: string) => {
+      const kwargs = convertBrownieTxDict(body);
+      return kwargs === null ? _match : `${indent}${kwargs},`;
+    })
     .replace(/\(\s*\{([^{}\n]*["']from["'][^{}\n]*)\}\s*,/g, (_match, body: string) => {
       const kwargs = convertBrownieTxDict(body);
       return kwargs === null ? _match : `(${kwargs},`;
@@ -119,6 +146,10 @@ const replaceTransactionDictionaries = (source: string) => {
     .replace(/,\s*\{([^{}\n]*["']from["'][^{}\n]*)\}\s*(?=\))/g, (_match, body: string) => {
       const kwargs = convertBrownieTxDict(body);
       return kwargs === null ? _match : `, ${kwargs}`;
+    })
+    .replace(/,\s*\{([^{}\n]*["']from["'][^{}\n]*)\}\s*,/g, (_match, body: string) => {
+      const kwargs = convertBrownieTxDict(body);
+      return kwargs === null ? _match : `, ${kwargs},`;
     })
     .replace(/\(\s*\{([^{}\n]*["']from["'][^{}\n]*)\}\s*\)/g, (_match, body: string) => {
       const kwargs = convertBrownieTxDict(body);
@@ -142,6 +173,53 @@ const replaceProjectDeployments = (source: string) => {
   });
 };
 
+const hasProjectImport = (source: string) => /^from\s+ape\s+import\s+.*\bproject\b/m.test(source);
+
+const hasLocalSymbolBinding = (source: string, name: string) => {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  return new RegExp(`^(?:class|def)\\s+${escaped}\\b|^${escaped}\\s*=`, 'm').test(source);
+};
+
+const hasExplicitNonBrownieImport = (source: string, name: string) => {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  return new RegExp(`^(?:from\\s+(?!brownie\\b)[^\\n]+\\s+import\\s+.*\\b${escaped}\\b|import\\s+${escaped}\\b)`, 'm').test(source);
+};
+
+const shouldRewriteProjectContainer = (source: string, contractName: string) => {
+  if (contractName === 'Contract' || PYTHON_TYPING_NAMES.has(contractName)) {
+    return false;
+  }
+
+  return hasProjectImport(source) && !hasLocalSymbolBinding(source, contractName) && !hasExplicitNonBrownieImport(source, contractName);
+};
+
+const replaceProjectContractContainers = (source: string) => {
+  return source
+    .replace(/(?<![\w.])([A-Z][A-Za-z0-9_]*)\.at\(/g, (match, contractName: string) => {
+      if (!shouldRewriteProjectContainer(source, contractName)) {
+        return match;
+      }
+
+      return `project.${contractName}.at(`;
+    })
+    .replace(/(?<![\w.])([A-Z][A-Za-z0-9_]*)\s*\[([^\]\n]+)\]/g, (_match, contractName: string, index: string) => {
+      if (!shouldRewriteProjectContainer(source, contractName)) {
+        return _match;
+      }
+
+      return `project.${contractName}.deployments[${index.trim()}]`;
+    })
+    .replace(/\blen\(\s*([A-Z][A-Za-z0-9_]*)\s*\)/g, (_match, contractName: string) => {
+      if (!shouldRewriteProjectContainer(source, contractName)) {
+        return _match;
+      }
+
+      return `len(project.${contractName}.deployments)`;
+    });
+};
+
 // Ape contract deployment and address lookup are documented in the Ape contracts guide.
 // Brownie contract containers are direct globals; Ape uses `project.<ContractName>` containers.
 const transform: Transform<Python> = async (root) => {
@@ -149,20 +227,26 @@ const transform: Transform<Python> = async (root) => {
   const hasContractPattern = rootNode.findAll({ rule: { any: CONTRACT_PATTERNS } }).length > 0;
   const source = rootNode.text();
 
-  if (!hasContractPattern && !/["']from["']\s*:/.test(source)) {
+  if (
+    !hasContractPattern &&
+    !/["']from["']\s*:/.test(source) &&
+    !/(?<![\w.])[A-Z][A-Za-z0-9_]*(?:\s*\[[^\]\n]+\]|\.at\()/.test(source) &&
+    !/\blen\(\s*[A-Z][A-Za-z0-9_]*\s*\)/.test(source)
+  ) {
     return null;
   }
 
   let migrated = source;
   migrated = replaceContractAddressLookups(migrated);
   migrated = replaceProjectDeployments(migrated);
+  migrated = replaceProjectContractContainers(migrated);
   migrated = replaceTransactionDictionaries(migrated);
 
   if (migrated !== source && /(?<![\w.])Contract\(/.test(migrated)) {
     migrated = ensureApeImport(migrated, 'Contract');
   }
 
-  if (migrated !== source && /\bproject\.[A-Z][A-Za-z0-9_]*\.deploy\(/.test(migrated)) {
+  if (migrated !== source && /\bproject\.[A-Z][A-Za-z0-9_]*\.(?:deploy|at|deployments)\b/.test(migrated)) {
     migrated = ensureApeImport(migrated, 'project');
   }
 

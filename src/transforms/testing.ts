@@ -135,6 +135,16 @@ const replaceEventAccess = (source: string) => {
         `${eventListExpression(receipt, eventName)}[${index}].event_arguments["${fieldName}"]`,
     )
     .replace(
+      /\b([A-Za-z_][A-Za-z0-9_]*)\.events\[['"]([A-Za-z_][A-Za-z0-9_]*)['"]\]\[['"]([A-Za-z_][A-Za-z0-9_]*)['"]\]/g,
+      (_match, receipt: string, eventName: string, fieldName: string) =>
+        `${eventListExpression(receipt, eventName)}[0].event_arguments["${fieldName}"]`,
+    )
+    .replace(
+      /\b([A-Za-z_][A-Za-z0-9_]*)\.events\[(\d+)\]\[['"]([A-Za-z_][A-Za-z0-9_]*)['"]\]/g,
+      (_match, receipt: string, index: string, fieldName: string) =>
+        `${receipt}.events[${index}].event_arguments["${fieldName}"]`,
+    )
+    .replace(
       /\b([A-Za-z_][A-Za-z0-9_]*)\.events\[['"]([A-Za-z_][A-Za-z0-9_]*)['"]\]/g,
       (_match, receipt: string, eventName: string) => eventListExpression(receipt, eventName),
     )

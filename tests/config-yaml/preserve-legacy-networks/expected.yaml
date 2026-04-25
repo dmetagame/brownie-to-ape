@@ -1,0 +1,25 @@
+name: migrated-ape-project
+plugins:
+  - name: solidity
+  - name: etherscan
+  - name: node
+solidity:
+  version: 0.8.19
+ethereum:
+  default_network: local
+  sepolia:
+    default_provider: node
+node:
+  ethereum:
+    sepolia:
+      uri: ${WEB3_PROVIDER_URI}
+# TODO: Brownie `wallets.from_key` is intentionally not copied.
+# Import the key once with `ape accounts import <alias>` and use `accounts.load("<alias>")`.
+
+# Legacy Brownie network values retained for migrated scripts that still read config["networks"].
+networks:
+  development:
+    verify: false
+  sepolia:
+    host: ${WEB3_PROVIDER_URI}
+    verify: true

@@ -3,6 +3,7 @@ import type Python from 'codemod:ast-grep/langs/python';
 
 const ACCOUNT_PATTERNS = [
   { pattern: 'accounts[$INDEX]' },
+  { pattern: 'accounts.add()' },
   { pattern: 'accounts.add($PRIVATE_KEY)' },
   { pattern: 'Account.from_key($PRIVATE_KEY)' },
 ];
@@ -46,11 +47,16 @@ const replaceRootAccountIndexing = (source: string) => {
 
   // Brownie scripts commonly use `accounts[0]` from the imported account manager.
   // Ape docs use `accounts.test_accounts[0]` for the same pre-funded accounts outside tests.
-  return source.replace(/(?<![\w.])accounts\[(\d+)\]/g, 'accounts.test_accounts[$1]');
+  return source.replace(/(?<![\w.])accounts\[(\d+|[A-Za-z_][A-Za-z0-9_]*)\]/g, 'accounts.test_accounts[$1]');
 };
 
 const replacePrivateKeyAccountConstruction = (source: string) => {
   let migrated = source;
+
+  migrated = migrated.replace(
+    /(?<![\w.])accounts\.add\(\s*\)/g,
+    'accounts.test_accounts.generate_test_account()',
+  );
 
   migrated = migrated.replace(
     /(?<![\w.])accounts\.add\(([^)\n]+)\)/g,

@@ -49,9 +49,7 @@ const replaceWeb3ProviderPatterns = (source: string) => {
     .replace(/\bweb3\.eth\.chain_id\b/g, 'chain.chain_id')
     .replace(/\bweb3\.eth\.block_number\b/g, 'chain.blocks.height')
     .replace(/\bchain\.height\b/g, 'chain.blocks.height')
-    .replace(/\bweb3\.eth\.get_balance\(([^)\n]+)\)/g, 'chain.get_balance($1)')
-    .replace(/\bweb3\.toWei\(([^,\n]+),\s*["']ether["']\)/g, 'convert($1, int)')
-    .replace(/\bweb3\.fromWei\(([^,\n]+),\s*["']ether["']\)/g, 'convert($1, str)');
+    .replace(/\bweb3\.eth\.get_balance\(([^)\n]+)\)/g, 'chain.get_balance($1)');
 };
 
 // Ape network choice and provider context managers are documented in the networks guide.
@@ -75,10 +73,6 @@ const transform: Transform<Python> = async (root) => {
 
   if (migrated !== source && /\bchain\./.test(migrated)) {
     migrated = ensureApeImport(migrated, 'chain');
-  }
-
-  if (migrated !== source && /\bconvert\(/.test(migrated)) {
-    migrated = ensureApeImport(migrated, 'convert');
   }
 
   return migrated === source ? null : migrated;

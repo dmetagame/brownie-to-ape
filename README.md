@@ -18,15 +18,16 @@ AI step handles only documented edge cases that remain.
 
 | Repository | Files changed | Brownie patterns before | Brownie patterns after | Automated | Remaining |
 | --- | --- | --- | --- | --- | --- |
-| [`smartcontractkit/chainlink-mix`](https://github.com/smartcontractkit/chainlink-mix) | 19 | 77 | 12 | 84.4% | 15.6% |
-| [`PatrickAlphaC/brownie_simple_storage`](https://github.com/PatrickAlphaC/brownie_simple_storage) | 4 | 9 | 1 | 88.9% | 11.1% |
+| [`smartcontractkit/chainlink-mix`](https://github.com/smartcontractkit/chainlink-mix) | 19 | 77 | 8 | 89.6% | 10.4% |
+| [`PatrickAlphaC/brownie_simple_storage`](https://github.com/PatrickAlphaC/brownie_simple_storage) | 4 | 9 | 0 | 100.0% | 0.0% |
 | [`PatrickAlphaC/brownie_fund_me`](https://github.com/PatrickAlphaC/brownie_fund_me) | 6 | 5 | 1 | 80.0% | 20.0% |
-| **Combined** | **29** | **91** | **14** | **84.6%** | **15.4%** |
+| **Combined** | **29** | **91** | **9** | **90.1%** | **9.9%** |
 
 Metric basis: Brownie-specific Python/YAML signatures before and after the
 workflow, excluding generated build artifacts. The measured result is **80%+
 automated on real projects**, with remaining work concentrated in dynamic
-wrappers, event dictionary handling, and project-specific config decisions.
+wrappers, legacy `web3.eth.contract(...)` event filters, Brownie conversion
+helpers, and project-specific exception handling.
 
 Full run notes are in:
 
@@ -206,7 +207,7 @@ Chainlink mix dry-run:
 ```bash
 cd /tmp
 git clone https://github.com/smartcontractkit/chainlink-mix.git chainlink-mix-brownie-to-ape
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npm install
 npm test
 npx codemod workflow run -w workflow.yaml --target /tmp/chainlink-mix-brownie-to-ape --dry-run --allow-dirty
@@ -217,7 +218,7 @@ Simple Storage dry-run and apply:
 ```bash
 cd /tmp
 git clone https://github.com/PatrickAlphaC/brownie_simple_storage.git brownie-simple-storage-brownie-to-ape
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npx codemod workflow run -w workflow.yaml --target /tmp/brownie-simple-storage-brownie-to-ape --dry-run --allow-dirty
 npx codemod workflow run -w workflow.yaml --target /tmp/brownie-simple-storage-brownie-to-ape --allow-dirty
 cd /tmp/brownie-simple-storage-brownie-to-ape
@@ -252,7 +253,8 @@ npx codemod workflow run -w workflow.yaml --target fixtures --dry-run --allow-di
 Current local validation:
 
 ```text
-ok: 16 fixture pairs
+ok: 17 fixture pairs
+13 jssg transform snapshot cases
 ```
 
 ## Publishing
@@ -302,4 +304,4 @@ npx codemod publish .
 
 ## Why the AI step made zero edits
 
-In the smoke tests on `chainlink-mix` and `brownie_simple_storage`, the AI step made zero edits. This is the intended behavior — the seven deterministic transforms were comprehensive enough to handle all safely-rewritable Brownie patterns in these repos. The AI step activates only when documented Ape equivalents exist for patterns the deterministic transforms intentionally skip (dynamic wrappers, custom account classes, complex event dictionary usage). Its zero-edit result is a signal of deterministic coverage, not a misconfiguration.
+In the smoke tests on `chainlink-mix`, `brownie_simple_storage`, and `brownie_fund_me`, the AI step made zero edits. This is the intended behavior: the seven deterministic transforms were comprehensive enough to handle the safely rewritable Brownie patterns in these repos. The AI step activates only when documented Ape equivalents exist for patterns the deterministic transforms intentionally skip, such as dynamic wrappers, custom account classes, complex event dictionary usage, or legacy `web3.py` event filters. Its zero-edit result is a signal of deterministic coverage, not a misconfiguration.

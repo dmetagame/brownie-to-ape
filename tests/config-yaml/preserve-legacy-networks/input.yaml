@@ -1,0 +1,11 @@
+compiler:
+  solc:
+    version: 0.8.19
+networks:
+  development:
+    verify: false
+  sepolia:
+    host: ${WEB3_PROVIDER_URI}
+    verify: true
+wallets:
+  from_key: ${PRIVATE_KEY}

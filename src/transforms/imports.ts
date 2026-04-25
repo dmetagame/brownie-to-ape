@@ -6,6 +6,7 @@ type ImportMember = {
 };
 const BROWNIE_IMPORT_PATTERNS = [
   { pattern: 'import brownie' },
+  { pattern: 'import brownie.network as $ALIAS' },
   { pattern: 'from brownie import $$$IMPORTS' },
 ];
 const APE_ROOT_IMPORTS = new Map<string, string[]>([
@@ -20,7 +21,6 @@ const APE_ROOT_IMPORTS = new Map<string, string[]>([
   ['project', ['project']],
   ['reverts', ['reverts']],
   ['Wei', ['convert']],
-  ['web3', ['chain']],
   ['ZERO_ADDRESS', ['ZERO_ADDRESS']],
 ]);
 const parseImportMember = (rawMember: string): ImportMember | null => {
@@ -40,17 +40,52 @@ const formatImportMember = (name: string, alias: string | null) => {
 const sortImportMembers = (members: string[]) => {
   return [...new Set(members)].sort((left, right) => left.localeCompare(right));
 };
-const mapBrownieMember = (member: ImportMember) => {
+const hasUnsafeContractContainerUsage = (source: string, name: string) => {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const withoutImportDeclarations = source
+    .replace(/^.*\bfrom\s+brownie\s+import\s+.*$/gm, '')
+    .replace(/^.*\bimport\s+brownie(?:\.[A-Za-z0-9_.]+)?(?:\s+as\s+[A-Za-z_][A-Za-z0-9_]*)?.*$/gm, '');
+  const withoutSafeContractContainerCalls = withoutImportDeclarations
+    .replace(new RegExp(`\\b${escaped}\\.(?:deploy|at)\\s*\\(`, 'g'), '')
+    .replace(new RegExp(`\\b${escaped}\\s*\\[[^\\]\\n]+\\]`, 'g'), '')
+    .replace(new RegExp(`\\blen\\s*\\(\\s*${escaped}\\s*\\)`, 'g'), '');
+  return new RegExp(`\\b${escaped}\\b`).test(withoutSafeContractContainerCalls);
+};
+
+const shouldPreserveUnsupportedMember = (source: string, member: ImportMember) => {
+  if (APE_ROOT_IMPORTS.has(member.name)) {
+    return false;
+  }
+
+  if (member.name === 'web3') {
+    return /\bweb3\.(?:toWei|fromWei)\s*\(/.test(source);
+  }
+
+  if (/^[A-Z]/.test(member.name)) {
+    return hasUnsafeContractContainerUsage(source, member.name);
+  }
+
+  return !APE_ROOT_IMPORTS.has(member.name);
+};
+
+const mapBrownieMember = (source: string, member: ImportMember) => {
+  if (shouldPreserveUnsupportedMember(source, member)) {
+    return { ape: [] as string[], brownie: [formatImportMember(member.name, member.alias)] };
+  }
+
   const mappedNames = APE_ROOT_IMPORTS.get(member.name);
   if (mappedNames) {
-    return mappedNames.map((name) => formatImportMember(name, member.alias));
+    return { ape: mappedNames.map((name) => formatImportMember(name, member.alias)), brownie: [] as string[] };
   }
+
   if (/^[A-Z]/.test(member.name)) {
-    return ['project'];
+    return { ape: ['project'], brownie: [] as string[] };
   }
-  return [`project # TODO: review unsupported Brownie import "${member.name}"`];
+
+  return { ape: [] as string[], brownie: [formatImportMember(member.name, member.alias)] };
 };
-const transformBrownieFromImport = (line: string) => {
+
+const transformBrownieFromImport = (line: string, source: string) => {
   const match = line.match(/^(\s*)from\s+brownie\s+import\s+(.+?)(\s*#.*)?$/);
   if (!match) {
     return line;
@@ -62,13 +97,34 @@ const transformBrownieFromImport = (line: string) => {
   const mappedMembers = importList
     .split(',')
     .map(parseImportMember)
-    .flatMap((member) => (member === null ? [] : mapBrownieMember(member)));
-  if (mappedMembers.length === 0) {
+    .filter((member): member is ImportMember => member !== null)
+    .map((member) => mapBrownieMember(source, member));
+
+  const apeMembers = mappedMembers.flatMap((member) => member.ape);
+  const brownieMembers = mappedMembers.flatMap((member) => member.brownie);
+  const lines: string[] = [];
+
+  if (apeMembers.length > 0) {
+    lines.push(`${indent}from ape import ${sortImportMembers(apeMembers).join(', ')}${comment}`);
+  }
+
+  if (brownieMembers.length > 0) {
+    const todo = '  # TODO(brownie-to-ape): migrate this unsupported Brownie import manually.';
+    lines.push(`${indent}from brownie import ${sortImportMembers(brownieMembers).join(', ')}${todo}`);
+  }
+
+  if (lines.length === 0) {
     return line;
   }
-  return `${indent}from ape import ${sortImportMembers(mappedMembers).join(', ')}${comment}`;
+
+  return lines.join('\n');
 };
 const transformBrownieImport = (line: string) => {
+  const networkImport = line.match(/^(\s*)import\s+brownie\.network\s+as\s+network(\s*#.*)?$/);
+  if (networkImport) {
+    return `${networkImport[1]}from ape import networks${networkImport[2] ?? ''}`;
+  }
+
   const exactImport = line.match(/^(\s*)import\s+brownie(\s*#.*)?$/);
   if (exactImport) {
     return `${exactImport[1]}import ape${exactImport[2] ?? ''}`;
@@ -113,7 +169,7 @@ const transform: Transform<Python> = async (root) => {
   const collapsed = collapseMultilineImports(source);
   const migrated = collapsed
     .split('\n')
-    .map((line) => transformBrownieImport(transformBrownieFromImport(line)))
+    .map((line) => transformBrownieImport(transformBrownieFromImport(line, collapsed)))
     .join('\n');
   return migrated === source ? null : migrated;
 };

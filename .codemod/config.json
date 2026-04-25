@@ -2,7 +2,7 @@
   "$schema": "https://docs.codemod.com/schemas/codemod.config.schema.json",
   "name": "brownie-to-ape",
   "displayName": "Brownie to Ape Framework",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Production-grade migration from Brownie to Ape Framework with deterministic jssg transforms + AI for edge cases. Automates 80%+ of the upgrade.",
   "author": "rouma",
   "license": "MIT",
@@ -27,13 +27,17 @@
     "access": "public",
     "visibility": "public",
     "publishCommand": "npx codemod publish .",
-    "testedWith": ["smartcontractkit/chainlink-mix", "PatrickAlphaC/brownie_simple_storage"]
+    "testedWith": [
+      "smartcontractkit/chainlink-mix",
+      "PatrickAlphaC/brownie_simple_storage",
+      "PatrickAlphaC/brownie_fund_me"
+    ]
   },
   "targets": {
     "sourceFramework": "Brownie",
     "targetFramework": "Ape Framework",
     "automationGoal": "80%+",
-    "measuredAutomation": "84.9%",
+    "measuredAutomation": "90.1%",
     "manualReviewBudget": "<20%"
   },
   "runtime": {
@@ -49,10 +53,11 @@
   },
   "validation": {
     "testCommand": "npm test",
-    "fixturePairs": 16,
-    "realRepoFilesChanged": 23,
-    "browniePatternsBefore": 86,
-    "browniePatternsAfter": 13
+    "fixturePairs": 17,
+    "transformSnapshotCases": 13,
+    "realRepoFilesChanged": 29,
+    "browniePatternsBefore": 91,
+    "browniePatternsAfter": 9
   },
   "sourceReferences": [
     "https://docs.apeworx.io/ape",
@@ -65,6 +70,6 @@
   ],
   "fixtures": {
     "directory": "fixtures",
-    "pairCount": 16
+    "pairCount": 17
   }
 }

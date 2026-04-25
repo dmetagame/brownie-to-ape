@@ -88,6 +88,33 @@ const quoteYaml = (value: string) => {
   return value;
 };
 
+const topLevelBlock = (source: string, key: string) => {
+  const lines = source.split('\n');
+  const start = lines.findIndex((line) => new RegExp(`^${key}:\\s*$`).test(line));
+
+  if (start === -1) {
+    return [];
+  }
+
+  const block = [lines[start]];
+
+  for (let index = start + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+
+    if (/^\S/.test(line)) {
+      break;
+    }
+
+    block.push(line);
+  }
+
+  while (block.length > 0 && block[block.length - 1].trim() === '') {
+    block.pop();
+  }
+
+  return block;
+};
+
 const renderApeConfig = (source: string) => {
   const solcVersion = scalarAfter(source, 'version') ?? '0.8.20';
   const remappings = collectSolcRemappings(source);
@@ -146,6 +173,14 @@ const renderApeConfig = (source: string) => {
   if (/^wallets:\s*$/m.test(source)) {
     lines.push('# TODO: Brownie `wallets.from_key` is intentionally not copied.');
     lines.push('# Import the key once with `ape accounts import <alias>` and use `accounts.load("<alias>")`.');
+  }
+
+  const legacyNetworks = topLevelBlock(source, 'networks');
+
+  if (legacyNetworks.length > 0) {
+    lines.push('');
+    lines.push('# Legacy Brownie network values retained for migrated scripts that still read config["networks"].');
+    lines.push(...legacyNetworks);
   }
 
   return `${lines.join('\n')}\n`;

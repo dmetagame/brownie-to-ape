@@ -1,6 +1,6 @@
 # Real Repo Test Results
 
-These smoke tests show the `brownie-to-ape` codemod running on two public Brownie projects. The results are suitable for README demos and hackathon submission material.
+These smoke tests show the `brownie-to-ape` codemod running on three public Brownie projects. The results are suitable for README demos and hackathon submission material.
 
 ## Targets
 
@@ -8,6 +8,7 @@ These smoke tests show the `brownie-to-ape` codemod running on two public Browni
 | --- | --- |
 | `smartcontractkit/chainlink-mix` | Covers Chainlink mocks, VRF/API scripts, config remappings, test fixtures, event assertions, and dynamic helper wrappers. |
 | `PatrickAlphaC/brownie_simple_storage` | Covers the canonical Brownie beginner structure: deploy script, read script, config, tests, accounts, and local network branching. |
+| `PatrickAlphaC/brownie_fund_me` | Covers mock deployment helpers, local/testnet branching, transaction dictionaries, revert tests, and account generation. |
 
 ## Exact Commands
 
@@ -15,8 +16,9 @@ These smoke tests show the `brownie-to-ape` codemod running on two public Browni
 cd /tmp
 git clone https://github.com/smartcontractkit/chainlink-mix.git chainlink-mix-brownie-to-ape-2
 git clone https://github.com/PatrickAlphaC/brownie_simple_storage.git brownie-simple-storage-brownie-to-ape
+git clone https://github.com/PatrickAlphaC/brownie_fund_me.git brownie-fund-me-brownie-to-ape
 
-cd /home/rouma/brownie-to-ape
+cd /path/to/brownie-to-ape
 npm install
 npm test
 ```
@@ -24,17 +26,19 @@ npm test
 Run dry-runs first:
 
 ```bash
-cd /home/rouma/brownie-to-ape
-npx codemod workflow run -w /home/rouma/brownie-to-ape/workflow.yaml --target /tmp/chainlink-mix-brownie-to-ape-2 --dry-run --allow-dirty
-npx codemod workflow run -w /home/rouma/brownie-to-ape/workflow.yaml --target /tmp/brownie-simple-storage-brownie-to-ape --dry-run --allow-dirty
+cd /path/to/brownie-to-ape
+npx codemod workflow run -w workflow.yaml --target /tmp/chainlink-mix-brownie-to-ape-2 --dry-run --allow-dirty
+npx codemod workflow run -w workflow.yaml --target /tmp/brownie-simple-storage-brownie-to-ape --dry-run --allow-dirty
+npx codemod workflow run -w workflow.yaml --target /tmp/brownie-fund-me-brownie-to-ape --dry-run --allow-dirty
 ```
 
 Apply to disposable clones:
 
 ```bash
-cd /home/rouma/brownie-to-ape
-npx codemod workflow run -w /home/rouma/brownie-to-ape/workflow.yaml --target /tmp/chainlink-mix-brownie-to-ape-2 --allow-dirty
-npx codemod workflow run -w /home/rouma/brownie-to-ape/workflow.yaml --target /tmp/brownie-simple-storage-brownie-to-ape --allow-dirty
+cd /path/to/brownie-to-ape
+npx codemod workflow run -w workflow.yaml --target /tmp/chainlink-mix-brownie-to-ape-2 --allow-dirty
+npx codemod workflow run -w workflow.yaml --target /tmp/brownie-simple-storage-brownie-to-ape --allow-dirty
+npx codemod workflow run -w workflow.yaml --target /tmp/brownie-fund-me-brownie-to-ape --allow-dirty
 ```
 
 Capture review diffs:
@@ -47,17 +51,22 @@ git diff -- scripts tests brownie-config.yaml > /tmp/chainlink-mix-brownie-to-ap
 cd /tmp/brownie-simple-storage-brownie-to-ape
 git diff --stat
 git diff -- scripts tests brownie-config.yaml > /tmp/brownie-simple-storage-brownie-to-ape.diff
+
+cd /tmp/brownie-fund-me-brownie-to-ape
+git diff --stat
+git diff -- scripts tests brownie-config.yaml > /tmp/brownie-fund-me-brownie-to-ape.diff
 ```
 
 ## Metrics
 
 | Repository | Total files changed | Deterministic transforms | AI step | Remaining manual work |
 | --- | ---: | ---: | ---: | ---: |
-| `smartcontractkit/chainlink-mix` | 19 | 84.4% | 0.0% observed | 15.6% |
-| `PatrickAlphaC/brownie_simple_storage` | 4 | 88.9% | 0.0% observed | 11.1% |
-| Combined | 23 | 84.9% | 0.0% observed | 15.1% |
+| `smartcontractkit/chainlink-mix` | 19 | 89.6% | 0.0% observed | 10.4% |
+| `PatrickAlphaC/brownie_simple_storage` | 4 | 100.0% | 0.0% observed | 0.0% |
+| `PatrickAlphaC/brownie_fund_me` | 6 | 80.0% | 0.0% observed | 20.0% |
+| Combined | 29 | 90.1% | 0.0% observed | 9.9% |
 
-Metric basis: measured Brownie-specific Python/YAML signatures before and after the workflow, excluding generated build artifacts. The combined run reduced tracked Brownie signatures from 86 to 13.
+Metric basis: measured Brownie-specific Python/YAML signatures before and after the workflow, excluding generated build artifacts and already-migrated Ape event access such as `tx.events[0].event_arguments[...]`. The combined run reduced tracked Brownie signatures from 91 to 9.
 
 ## Professional Before/After Examples
 
@@ -148,11 +157,10 @@ solidity:
 
 The remaining work is concentrated in dynamic code that a safe codemod should not guess:
 
-- Dynamic helper imports and contract wrappers in `chainlink-mix/scripts/helpful_scripts.py`.
+- Dynamic helper imports and contract wrapper dictionaries in `chainlink-mix/scripts/helpful_scripts.py`.
 - Direct `web3.eth.contract(...).events[...]` filter construction.
-- Event dictionary indexing that should be reviewed against Ape receipt event objects.
-- Runtime mutation of `brownie-config.yaml` in subscription scripts.
-- One unused `import brownie.network as network` in `brownie_simple_storage`.
+- Brownie-only `convert.to_bytes(...)` helper usage.
+- Project-specific Brownie exception imports in revert tests.
 
 ## Demo Summary
 
@@ -160,7 +168,7 @@ The codemod successfully ran as a hybrid workflow on both repositories:
 
 - Seven deterministic ast-grep transforms handled imports, accounts, deployments, networks, tests, scripts, and YAML config.
 - The guarded AI step executed after deterministic transforms and did not make speculative edits in these smoke tests.
-- Combined measured automation was 84.9%, keeping manual review at 15.1%.
+- Combined measured automation was 90.1%, keeping manual review at 9.9%.
 - The output diffs are reviewable and concentrated in Brownie migration surfaces rather than unrelated style churn.
 
 ## Third Repo: PatrickAlphaC/brownie_fund_me
@@ -175,7 +183,7 @@ Remaining work: one multiline `from brownie import (MockV3Aggregator, network, .
 
 | Repository | Files changed | Brownie signatures before | Brownie signatures after | Automated | Remaining |
 | --- | --- | --- | --- | --- | --- |
-| `smartcontractkit/chainlink-mix` | 19 | 77 | 12 | 84.4% | 15.6% |
-| `PatrickAlphaC/brownie_simple_storage` | 4 | 9 | 1 | 88.9% | 11.1% |
+| `smartcontractkit/chainlink-mix` | 19 | 77 | 8 | 89.6% | 10.4% |
+| `PatrickAlphaC/brownie_simple_storage` | 4 | 9 | 0 | 100.0% | 0.0% |
 | `PatrickAlphaC/brownie_fund_me` | 6 | 5 | 1 | 80.0% | 20.0% |
-| **Combined** | **29** | **91** | **14** | **84.6%** | **15.4%** |
+| **Combined** | **29** | **91** | **9** | **90.1%** | **9.9%** |

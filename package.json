@@ -1,6 +1,6 @@
 {
   "name": "brownie-to-ape",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "Production-grade migration from Brownie to Ape Framework with deterministic jssg transforms + AI for edge cases. Automates 80%+ of the upgrade.",
   "type": "module",
@@ -28,6 +28,7 @@
     ".codemod",
     "fixtures",
     "src",
+    "tests",
     "workflow.yaml",
     "codemod.yaml",
     "README.md",
@@ -38,9 +39,10 @@
     "test-results-chainlink-mix.md"
   ],
   "scripts": {
-    "test": "npm run typecheck && npm run workflow:validate && npm run fixtures:validate",
+    "test": "npm run typecheck && npm run workflow:validate && npm run fixtures:validate && npm run transforms:test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "fixtures:validate": "node -e \"const fs=require('node:fs');const required=['package.json','tsconfig.json','workflow.yaml','README.md','.codemod/config.json','real-repo-test.md','real-repo-test-results.md','HACKATHON-SUBMISSION.md','submission-ready-checklist.md'];for(const file of required)fs.accessSync(file);const files=fs.readdirSync('fixtures').filter((file)=>/\\.(py|ya?ml)$/.test(file));const before=files.filter((file)=>file.includes('.before.')).map((file)=>file.replace('.before.','.')).sort();const after=files.filter((file)=>file.includes('.after.')).map((file)=>file.replace('.after.','.')).sort();if(before.length<15)throw new Error('expected at least 15 fixture pairs');if(JSON.stringify(before)!==JSON.stringify(after))throw new Error('fixture before/after mismatch: '+JSON.stringify({before,after}));const workflow=fs.readFileSync('workflow.yaml','utf8');if(!workflow.includes('js-ast-grep:')||!workflow.includes('language: python')||!workflow.includes('language: yaml')||workflow.lastIndexOf('ai:')<workflow.lastIndexOf('language: yaml'))throw new Error('workflow must run Python/YAML JSSG steps before the AI step');console.log('ok: '+before.length+' fixture pairs')\"",
+    "transforms:test": "codemod jssg test src/transforms/imports.ts tests/imports --language python --reporter terse && codemod jssg test src/transforms/accounts.ts tests/accounts --language python --reporter terse && codemod jssg test src/transforms/contracts.ts tests/contracts --language python --reporter terse && codemod jssg test src/transforms/networks.ts tests/networks --language python --reporter terse && codemod jssg test src/transforms/testing.ts tests/testing --language python --reporter terse && codemod jssg test src/transforms/config-yaml.ts tests/config-yaml --language yaml --reporter terse",
     "workflow:validate": "codemod workflow validate -w workflow.yaml",
     "publish:codemod": "npm test && npx codemod publish . --verbose"
   },
