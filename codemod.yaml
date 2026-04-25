@@ -1,7 +1,7 @@
 schema_version: "1.0"
 
 name: "brownie-to-ape"
-version: "0.1.0"
+version: "0.1.1"
 description: "Production-grade migration from Brownie to Ape Framework with deterministic jssg transforms + AI for edge cases. Automates 80%+ of the upgrade."
 author: "dmetagame <118340345+dmetagame@users.noreply.github.com>"
 license: "MIT"
